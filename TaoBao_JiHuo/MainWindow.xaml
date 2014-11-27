@@ -1,0 +1,92 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2" x:Class="TaoBao_JiHuo.MainWindow"
+        Title="MainWindow" Height="716" Width="1010" WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize" Closed="Window_Closed" Loaded="Window_Loaded">
+    <Window.Resources>
+        <!--设置ElementStyle的样式，使得表中元素中内容可以居中显示-->
+        <ResourceDictionary>
+            <Style x:Key="dgCell" TargetType="TextBlock">
+                <Setter Property="TextAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"></Setter>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid>
+        <!--<Label x:Name="Lbprint"  Content="" FontSize="16" Foreground="DeepPink" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="574,468,0,0" VerticalAlignment="Top" Height="32" Width="168"/>-->
+        <!--<Rectangle HorizontalAlignment="Left" Height="123" Margin="10,554,0,0" Stroke="#FF002EFF" VerticalAlignment="Top" Width="537"/>-->
+
+
+        <Button x:Name="BtSearch" Content="搜索" HorizontalAlignment="Left" Margin="394,510,0,0" VerticalAlignment="Top" Width="104" Height="32" Click="Button_Click"/>
+        <!--<ListBox Name="listb1"  HorizontalContentAlignment="Left" VerticalContentAlignment="Center" HorizontalAlignment="Left" Height="479" Margin="39,19,0,0" VerticalAlignment="Top" Width="481" >
+            
+        </ListBox>-->
+        <TextBox x:Name="Tbsuosou" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" HorizontalAlignment="Left" Height="32" Margin="10,510,0,0" TextWrapping="NoWrap" Text="" VerticalAlignment="Top" Width="380"/>
+        <DataGrid x:Name="dg1" CanUserAddRows="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" CanUserSortColumns="True" ColumnHeaderHeight="25" AutoGenerateColumns="False" HorizontalAlignment="Left" Margin="10,39,0,0" VerticalAlignment="Top" Height="446" Width="488"  MouseDoubleClick="dg1_MouseDoubleClick" AlternatingRowBackground="#FFD7E6D9" FontFamily="Meiryo UI" IsReadOnly="True" AlternationCount="2" GridLinesVisibility="None" Background="{x:Null}" >
+            <DataGrid.ColumnHeaderStyle>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="HorizontalContentAlignment" Value="Center">
+                    </Setter>
+                </Style>
+            </DataGrid.ColumnHeaderStyle>
+            <DataGrid.Columns>
+                <DataGridTextColumn ElementStyle="{StaticResource dgCell}" Header="排名" CanUserSort="True" Binding="{Binding Baobei_Rkingname}" Width="*" />
+                <DataGridTextColumn ElementStyle="{StaticResource dgCell}" Header="卖家" CanUserSort="False" Binding="{Binding Baobei_manager}" Width="auto"  />
+                <DataGridTextColumn ElementStyle="{StaticResource dgCell}" Header="总交易量" CanUserSort="False" Binding="{Binding Baobei_trading.Quantity}" Width="60" />
+                <DataGridTextColumn ElementStyle="{StaticResource dgCell}" Header="最近成功交易量" CanUserSort="False" Binding="{Binding Baobei_trading.ConfirmGoodsItems}" Width="96" />
+                <DataGridTextColumn ElementStyle="{StaticResource dgCell}" Header="价格" CanUserSort="False" Binding="{Binding Baobei_price}" Width="40" />
+                <DataGridTextColumn ElementStyle="{StaticResource dgCell}" Header="当天交易额" CanUserSort="True" Binding="{Binding Baobei_TimeOfPrice}" Width="*" />
+            </DataGrid.Columns>
+        </DataGrid>
+        <Label x:Name="Lbzj" Content=""  IsEnabled="False" FontSize="12" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="609,13,0,0" VerticalAlignment="Top" Width="auto" Height="auto"/>
+        <Label Content="监控中心" FontSize="15" Foreground="Red" HorizontalAlignment="Left" Margin="522,10,0,0" VerticalAlignment="Top" Width="78"/>
+        <DataGrid x:Name="dgmonitor" IsReadOnly="True" CanUserAddRows="False" CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserResizeRows="False" CanUserSortColumns="False" ColumnHeaderHeight="25" AutoGenerateColumns="False" HorizontalAlignment="Left" Margin="522,39,0,0" VerticalAlignment="Top" Height="auto" Width="463" AlternatingRowBackground="#FFD7E6D9" AlternationCount="2" GridLinesVisibility="None" >
+            <DataGrid.ColumnHeaderStyle>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="HorizontalContentAlignment" Value="Center">
+                    </Setter>
+                </Style>
+            </DataGrid.ColumnHeaderStyle>
+            <DataGrid.Columns>
+                <DataGridTextColumn ElementStyle="{StaticResource dgCell}" Header="卖家" Binding="{Binding Dataid}" Width="auto" />
+                <DataGridTextColumn ElementStyle="{StaticResource dgCell}" Header="总销量" Binding="{Binding Totalnum}" Width="auto" />
+                <DataGridTextColumn ElementStyle="{StaticResource dgCell}" Header="共用时" Binding="{Binding Totalnum_time}" Width="100" />
+                <DataGridTextColumn ElementStyle="{StaticResource dgCell}" Header="价格" Binding="{Binding Price_State}" Width="auto" />
+                <DataGridTextColumn ElementStyle="{StaticResource dgCell}" Header="宝贝状态" Binding="{Binding Baobei_State}" Width="60" />
+                <DataGridTextColumn ElementStyle="{StaticResource dgCell}" Header="估计已入账" Binding="{Binding MaybeEarnMoney}" Width="*" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <GroupBox  Header="排序规则" HorizontalAlignment="Left" Margin="10,557,0,0" VerticalAlignment="Top" Height="111" Width="104" BorderBrush="Gray" Foreground="Gray">
+            <Grid>
+                <RadioButton x:Name="RbZ" GroupName="RankingMode" Content="综合排名" HorizontalAlignment="Left" Margin="10,23,0,0" VerticalAlignment="Top" Checked="RbZ_Checked"/>
+                <RadioButton x:Name="RbX" IsChecked="True" GroupName="RankingMode" Content="销量排名" HorizontalAlignment="Left" Margin="10,52,0,0" VerticalAlignment="Top" Checked="RbX_Checked"/>
+            </Grid>
+        </GroupBox>
+        <GroupBox  Header="监控规则" HorizontalAlignment="Left" Margin="132,557,0,0" VerticalAlignment="Top" Height="111" Width="366" BorderBrush="Gray" Foreground="Gray">
+            <Grid>
+                <CheckBox x:Name="CbLimitXianShiSize" Content="限制数量" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" ToolTip="限制宝贝显示的数量"/>
+                <Label Content="显示的宝贝个数：" HorizontalAlignment="Left" Margin="121,4,0,0" VerticalAlignment="Top"/>
+                <TextBox x:Name="TbXianShiSize" InputMethod.IsInputMethodEnabled="False" VerticalContentAlignment="Center" HorizontalAlignment="Left" Height="23" Margin="227,5,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
+                <Label Content="监控的宝贝个数：" HorizontalAlignment="Left" Margin="121,32,0,0" VerticalAlignment="Top"/>
+                <TextBox x:Name="TbmonitorSize" VerticalContentAlignment="Center" HorizontalAlignment="Left" Height="23" Margin="227,33,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
+                <CheckBox Name="CbSuperMode" Content="开启极速模式" HorizontalAlignment="Left" Margin="10,65,0,0" VerticalAlignment="Top" ToolTip="电脑配置不好的，不建议开启" Click="CbSuperMode_Click" />
+                <CheckBox x:Name="Cbopenmonitor" IsChecked="True" Content="开启监控" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top" />
+
+            </Grid>
+        </GroupBox>
+        <ProgressBar x:Name="PbSearch" HorizontalAlignment="Left" Height="5" Margin="10,485,0,0" VerticalAlignment="Top" Width="488">
+            <ProgressBar.Foreground>
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <GradientStop Color="#FF60AC49" Offset="1"/>
+                    <GradientStop Color="#FF44E615"/>
+                </LinearGradientBrush>
+            </ProgressBar.Foreground>
+        </ProgressBar>
+        <Label x:Name="Lbbegintime" FontSize="8" Content="" Foreground="Gray" HorizontalAlignment="Left" Margin="842,16,0,0" VerticalAlignment="Top" Width="auto" Height="19"/>
+        <Label x:Name="LbTotalPeople" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Content="" Foreground="Gray" HorizontalAlignment="Left" Margin="522,510,0,0" VerticalAlignment="Top" Width="445" Height="74"/>
+        <Label Name="LbSever" Content="" VerticalContentAlignment="Center" Foreground="Purple" HorizontalAlignment="Left" Margin="10,9,0,0" VerticalAlignment="Top" Width="537"/>
+
+
+    </Grid>
+</Window>
