@@ -54,7 +54,7 @@ namespace Chengf_BaoBeiMonitor
                     allbaobeilink.Add(bbat_copy[i].Baobei_link);
                 }
             }
-            List<BaoBei_Attribute> baobeilist = Chengf_CommodityAnaltze.Commodity_Analyze.ThreadUpdataStatic(allbaobeilink, JiDudelegate,5);
+           List<BaoBei_Attribute> baobeilist = Chengf_CommodityAnaltze.Commodity_Analyze.ThreadUpdataStatic(allbaobeilink, JiDudelegate,5);
             for (int i = Monitornum; i < bbat_copy.Count; i++)
             {
                 baobeilist.Add(bbat_copy[i]);

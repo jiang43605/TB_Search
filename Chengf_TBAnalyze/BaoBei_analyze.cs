@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Chengf;
 using System.IO;
+using System.Net;
 
 namespace Chengf_BaoBeiAnalyze
 {
@@ -17,16 +18,16 @@ namespace Chengf_BaoBeiAnalyze
         /// </summary>
         /// <param name="uri">网页地址</param>
         /// <param name="timeout">响应时间</param>
+         /// <param name="objCookieContainer">总的Cookie传递集合</param>
         /// <returns></returns>
-        public  BaoBei_Attribute Analyze(string uri, int timeout)
+        public  BaoBei_Attribute Analyze(string uri, int timeout,CookieContainer objCookieContainer)
         {
-           // System.Windows.Forms.MessageBox.Show(uri);
             BaoBei_Attribute Baobei_Attribute = new BaoBei_Attribute();
             myhttpweb.Timeout = timeout;
             getstring = myhttpweb.PostOrGet(uri, HttpMethod.GET)[1];
             if (getstring.IndexOf("天猫") == -1)
             {
-                BaoBei_TradeRecord TradeRecord = BaoBei_TradeRecord.GetTradeRecord(uri, DateTime.Now);
+                BaoBei_TradeRecord TradeRecord = BaoBei_TradeRecord.GetTradeRecord(uri, DateTime.Now, objCookieContainer);
                 Baobei_Attribute.Baobei_link = uri;
                 Baobei_Attribute.Baobei_name = Cf_String.ExtractStringNoQH(getstring, "<title>", "</title>")[0];//宝贝的名字
                 Baobei_Attribute.Baobei_manager = Cf_String.ExtractStringNoQH(getstring, "sellerNick:\"", "\"")[0];//宝贝掌柜的名字

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +14,13 @@ namespace Chengf_BaoBeiAnalyze
     /// </summary>
     public class BaoBei_TradeRecord
     {
+        /// <summary>
+        /// 初始化该类
+        /// </summary>
+        public BaoBei_TradeRecord()
+        {
+
+        }
         /// <summary>
         /// 买家
         /// </summary>
@@ -50,18 +58,11 @@ namespace Chengf_BaoBeiAnalyze
         /// </summary>
         /// <param name="uri"></param>
         /// <returns></returns>
-        public static BaoBei_TradeRecord GetTradeRecord(string uri, DateTime datetime)
+        public static BaoBei_TradeRecord GetTradeRecord(string uri, DateTime datetime,CookieContainer cookiecontainertool)
         {
 
             BaoBei_TradeRecord traceRecord = new BaoBei_TradeRecord();
             Chengf.Cf_HttpWeb newhttpweb = new Chengf.Cf_HttpWeb();
-
-            #region 临时解决方法
-            newhttpweb.Referer = "http://www.taobao.com/";
-            System.Net.CookieContainer cookiecontanier_test = (System.Net.CookieContainer)newhttpweb.PostOrGet("http://apollon.t.taobao.com/market/AllContentByPage.do?resourceIds=20140506001,20140506002,201040506006,20140506003,20140506004,20140506007,20140506008,20140506009,2014050610&t=1417249350371", HttpMethod.GET, new System.Net.CookieContainer())[0];
-            #endregion
-
-
             int endpoint = 0;
             string html = newhttpweb.PostOrGet(uri, Chengf.HttpMethod.GET)[1];
             string tradrecordh_html = Cf_String.ExtractStringNoQH(html, "data-api=\"", "\"")[0];
@@ -69,10 +70,9 @@ namespace Chengf_BaoBeiAnalyze
             string recordhtml = "";
             string strreplace = "bid_page=1";//为下面循环进行数据暂存
             BaoBei_TradeRecord endrecordlist = new BaoBei_TradeRecord();//存储末尾的交易记录
-            string test_2 = (string)new Cf_HttpWeb().PostOrGet(tradrecordh_html, HttpMethod.GET,cookiecontanier_test)[1];
-            if (test_2.IndexOf(datetime.ToString("yyyy-MM-dd")) == -1)
+            string timeEquals = (string)new Cf_HttpWeb().PostOrGet(tradrecordh_html, HttpMethod.GET, cookiecontainertool)[1];
+            if (timeEquals.IndexOf(datetime.ToString("yyyy-MM-dd")) == -1)
                 return null;
-
            
 
             for (int i = 1; ; i++)
@@ -82,7 +82,7 @@ namespace Chengf_BaoBeiAnalyze
                     string pagenum = "bid_page=" + i.ToString();
                     tradrecordh_html = tradrecordh_html.Replace(strreplace, pagenum);
                     strreplace = pagenum;
-                    string recordhtml_copy = (string)newhttpweb.PostOrGet(tradrecordh_html, HttpMethod.GET, cookiecontanier_test)[1];
+                    string recordhtml_copy = (string)newhttpweb.PostOrGet(tradrecordh_html, HttpMethod.GET, cookiecontainertool)[1];
                     if (!IsDateEnd(HtmlToTradeRecord(recordhtml_copy).BuyTime, datetime, out endpoint) || recordhtml_copy.IndexOf("暂时还没有买家购买此宝贝") != -1 || i >= 100)
                     {
                         if (recordhtml_copy.IndexOf("暂时还没有买家购买此宝贝") != -1) { endrecordlist = null; break; }

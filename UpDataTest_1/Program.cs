@@ -117,243 +117,243 @@ namespace UpDataTest_1
         /// </summary>
         /// <param name="uri"></param>
         /// <returns></returns>
-        private static BaoBei_TradeRecord UriToTradeRecord(string uri)
-        {
-            BaoBei_TradeRecord tradrecord = new BaoBei_TradeRecord();
-            Chengf.Cf_HttpWeb newhttpweb = new Chengf.Cf_HttpWeb();
-            string record_html = newhttpweb.PostOrGet(uri, Chengf.HttpMethod.GET)[1];
-            return HtmlToTradeRecord(record_html);
-        }
-        /// <summary>
-        /// 解析特定网页的内容，返回一个解析的对象
-        /// </summary>
-        /// <param name="html"></param>
-        /// <returns></returns>
-        private static BaoBei_TradeRecord HtmlToTradeRecord(string html)
-        {
-            BaoBei_TradeRecord tradrecord = new BaoBei_TradeRecord();
-            #region 得到买家的名字
-            List<string> buyname_list = Cf_String.ExtractStringNoQH(html, "tb-sellnick\\\">", "</span> <");
-            for (int i = 0; i < buyname_list.Count; i++)
-            {
-                buyname_list[i] = Cf_String.DeleteSpecificString(buyname_list[i], "<", ">");
-            }
-            #endregion
-            tradrecord.BuyerName = buyname_list;
-            #region 得到购买的价格
-            List<string> buyprice_strlist = Cf_String.ExtractStringNoQH(html, "tb-rmb-num\\\">", "</em>");
-            List<double> buyprice_doblist = new List<double>();
-            foreach (var item in buyprice_strlist)
-            {
-                buyprice_doblist.Add(double.Parse(item));
-            }
-            #endregion
-            tradrecord.BuyPrice = buyprice_doblist;
-            #region 得到购买的数量
-            List<string> buynum_strlist = Cf_String.ExtractStringNoQH(html, "<td class=\\\"tb-amount\\\">", "</td>");
-            List<int> buynum_intlist = new List<int>();
-            foreach (var item in buynum_strlist)
-            {
-                buynum_intlist.Add(int.Parse(item));
-            }
-            #endregion
-            tradrecord.BuyNum = buynum_intlist;
-            #region 得到购买的时间
-            List<string> buytime_strtime = Cf_String.ExtractStringNoQH(html, "<td class=\\\"tb-start\\\">", "</td>");
-            List<DateTime> buytime_datertime = new List<DateTime>();
-            foreach (var item in buytime_strtime)
-            {
-                buytime_datertime.Add(DateTime.Parse(item));
-            }
-            #endregion
-            tradrecord.BuyTime = buytime_datertime;
-            return tradrecord;
-        }
-        /// <summary>
-        /// 判断时间点是否吻合
-        /// </summary>
-        /// <param name="datetime"></param>
-        /// <param name="datebool"></param>
-        /// <param name="newdatetime"></param>
-        /// <returns></returns>
-        private static bool IsDateEnd(List<DateTime> datetime, DateTime datebool, out int newdatetime)
-        {
-            bool returnbool = true;
-            newdatetime = 0;
-            for (int i = 0; i < datetime.Count; i++)
-            {
-                if (datetime[i].ToShortDateString() != datebool.ToShortDateString())
-                {
-                    newdatetime = i;
-                    return false;
-                }
-            }
-            return returnbool;
-        }
-        private List<BaoBei_Attribute> ThreadUpdata(List<string> allbaobeilink, newdelegate JiDudelegate, int threadnum)
-        {
-            BaoBei_Attribute[] fanghui = new BaoBei_Attribute[allbaobeilink.Count];//定义该数组为了纠正因为List导致的排名错误
-            List<BaoBei_Attribute> baobeilist = new List<BaoBei_Attribute>();//获得所有宝贝属性
-            bool bl1 = false, bl2 = false, bl3 = false, bl4 = false;
-            bool[] isthreadend = new bool[threadnum];
-            for (int i = 0; i < threadnum; i++)
-            {
-                if (allbaobeilink.Count >= i + 1)
-                {
-                    ThreadPool.QueueUserWorkItem(new WaitCallback((a) =>
-                    {
-                        for (int j = i; j < allbaobeilink.Count; j += i)
-                        {
-                        gt1: try
-                            {
-                                BaoBei_Attribute blat = new BaoBei_analyze().Analyze(allbaobeilink[j], 10000);
-                                System.GC.Collect();
-                                if (blat != null)
-                                {
-                                    fanghui[i] = blat;
-                                    if (JiDudelegate != null)
-                                        JiDudelegate();
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                goto gt1;
-                            }
-                        }
-                        isthreadend[i] = true;
-                    }));
-                }
-            }
-            #region 开启4个线程加速
-            if (allbaobeilink.Count >= 1)
-            {
-                ThreadPool.QueueUserWorkItem((a) =>
-                {
+        //private static BaoBei_TradeRecord UriToTradeRecord(string uri)
+        //{
+        //    BaoBei_TradeRecord tradrecord = new BaoBei_TradeRecord();
+        //    Chengf.Cf_HttpWeb newhttpweb = new Chengf.Cf_HttpWeb();
+        //    string record_html = newhttpweb.PostOrGet(uri, Chengf.HttpMethod.GET)[1];
+        //    return HtmlToTradeRecord(record_html);
+        //}
+        ///// <summary>
+        ///// 解析特定网页的内容，返回一个解析的对象
+        ///// </summary>
+        ///// <param name="html"></param>
+        ///// <returns></returns>
+        //private static BaoBei_TradeRecord HtmlToTradeRecord(string html)
+        //{
+        //    BaoBei_TradeRecord tradrecord = new BaoBei_TradeRecord();
+        //    #region 得到买家的名字
+        //    List<string> buyname_list = Cf_String.ExtractStringNoQH(html, "tb-sellnick\\\">", "</span> <");
+        //    for (int i = 0; i < buyname_list.Count; i++)
+        //    {
+        //        buyname_list[i] = Cf_String.DeleteSpecificString(buyname_list[i], "<", ">");
+        //    }
+        //    #endregion
+        //    tradrecord.BuyerName = buyname_list;
+        //    #region 得到购买的价格
+        //    List<string> buyprice_strlist = Cf_String.ExtractStringNoQH(html, "tb-rmb-num\\\">", "</em>");
+        //    List<double> buyprice_doblist = new List<double>();
+        //    foreach (var item in buyprice_strlist)
+        //    {
+        //        buyprice_doblist.Add(double.Parse(item));
+        //    }
+        //    #endregion
+        //    tradrecord.BuyPrice = buyprice_doblist;
+        //    #region 得到购买的数量
+        //    List<string> buynum_strlist = Cf_String.ExtractStringNoQH(html, "<td class=\\\"tb-amount\\\">", "</td>");
+        //    List<int> buynum_intlist = new List<int>();
+        //    foreach (var item in buynum_strlist)
+        //    {
+        //        buynum_intlist.Add(int.Parse(item));
+        //    }
+        //    #endregion
+        //    tradrecord.BuyNum = buynum_intlist;
+        //    #region 得到购买的时间
+        //    List<string> buytime_strtime = Cf_String.ExtractStringNoQH(html, "<td class=\\\"tb-start\\\">", "</td>");
+        //    List<DateTime> buytime_datertime = new List<DateTime>();
+        //    foreach (var item in buytime_strtime)
+        //    {
+        //        buytime_datertime.Add(DateTime.Parse(item));
+        //    }
+        //    #endregion
+        //    tradrecord.BuyTime = buytime_datertime;
+        //    return tradrecord;
+        //}
+        ///// <summary>
+        ///// 判断时间点是否吻合
+        ///// </summary>
+        ///// <param name="datetime"></param>
+        ///// <param name="datebool"></param>
+        ///// <param name="newdatetime"></param>
+        ///// <returns></returns>
+        //private static bool IsDateEnd(List<DateTime> datetime, DateTime datebool, out int newdatetime)
+        //{
+        //    bool returnbool = true;
+        //    newdatetime = 0;
+        //    for (int i = 0; i < datetime.Count; i++)
+        //    {
+        //        if (datetime[i].ToShortDateString() != datebool.ToShortDateString())
+        //        {
+        //            newdatetime = i;
+        //            return false;
+        //        }
+        //    }
+        //    return returnbool;
+        //}
+        //private List<BaoBei_Attribute> ThreadUpdata(List<string> allbaobeilink, newdelegate JiDudelegate, int threadnum)
+        //{
+        //    BaoBei_Attribute[] fanghui = new BaoBei_Attribute[allbaobeilink.Count];//定义该数组为了纠正因为List导致的排名错误
+        //    List<BaoBei_Attribute> baobeilist = new List<BaoBei_Attribute>();//获得所有宝贝属性
+        //    bool bl1 = false, bl2 = false, bl3 = false, bl4 = false;
+        //    bool[] isthreadend = new bool[threadnum];
+        //    for (int i = 0; i < threadnum; i++)
+        //    {
+        //        if (allbaobeilink.Count >= i + 1)
+        //        {
+        //            ThreadPool.QueueUserWorkItem(new WaitCallback((a) =>
+        //            {
+        //                for (int j = i; j < allbaobeilink.Count; j += i)
+        //                {
+        //                gt1: try
+        //                    {
+        //                        BaoBei_Attribute blat = new BaoBei_analyze().Analyze(allbaobeilink[j], 10000);
+        //                        System.GC.Collect();
+        //                        if (blat != null)
+        //                        {
+        //                            fanghui[i] = blat;
+        //                            if (JiDudelegate != null)
+        //                                JiDudelegate();
+        //                        }
+        //                    }
+        //                    catch (Exception ex)
+        //                    {
+        //                        goto gt1;
+        //                    }
+        //                }
+        //                isthreadend[i] = true;
+        //            }));
+        //        }
+        //    }
+        //    #region 开启4个线程加速
+        //    if (allbaobeilink.Count >= 1)
+        //    {
+        //        ThreadPool.QueueUserWorkItem((a) =>
+        //        {
 
-                    for (int i = 0; i < allbaobeilink.Count; i += 4)
-                    {
-                    gt1: try
-                        {
-                            BaoBei_Attribute blat = new BaoBei_analyze().Analyze(allbaobeilink[i], 10000);
-                            System.GC.Collect();
-                            if (blat != null)
-                            {
-                                fanghui[i] = blat;
-                                if (JiDudelegate != null)
-                                    JiDudelegate();
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            goto gt1;
-                        }
-                    }
-                    bl1 = true;
-                });
-            }
-            if (allbaobeilink.Count >= 2)
-            {
-                ThreadPool.QueueUserWorkItem((a) =>
-                {
+        //            for (int i = 0; i < allbaobeilink.Count; i += 4)
+        //            {
+        //            gt1: try
+        //                {
+        //                    BaoBei_Attribute blat = new BaoBei_analyze().Analyze(allbaobeilink[i], 10000);
+        //                    System.GC.Collect();
+        //                    if (blat != null)
+        //                    {
+        //                        fanghui[i] = blat;
+        //                        if (JiDudelegate != null)
+        //                            JiDudelegate();
+        //                    }
+        //                }
+        //                catch (Exception ex)
+        //                {
+        //                    goto gt1;
+        //                }
+        //            }
+        //            bl1 = true;
+        //        });
+        //    }
+        //    if (allbaobeilink.Count >= 2)
+        //    {
+        //        ThreadPool.QueueUserWorkItem((a) =>
+        //        {
 
-                    for (int i = 1; i < allbaobeilink.Count; i += 4)
-                    {
-                    gt2: try
-                        {
-                            BaoBei_Attribute blat = new BaoBei_analyze().Analyze(allbaobeilink[i], 10000);
-                            System.GC.Collect();
-                            if (blat != null)
-                            {
+        //            for (int i = 1; i < allbaobeilink.Count; i += 4)
+        //            {
+        //            gt2: try
+        //                {
+        //                    BaoBei_Attribute blat = new BaoBei_analyze().Analyze(allbaobeilink[i], 10000);
+        //                    System.GC.Collect();
+        //                    if (blat != null)
+        //                    {
 
-                                fanghui[i] = blat;
-                                if (JiDudelegate != null)
-                                    JiDudelegate();
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            goto gt2;
-                        }
-                    }
-                    bl2 = true;
-                });
-            }
-            if (allbaobeilink.Count >= 3)
-            {
-                ThreadPool.QueueUserWorkItem((a) =>
-                {
+        //                        fanghui[i] = blat;
+        //                        if (JiDudelegate != null)
+        //                            JiDudelegate();
+        //                    }
+        //                }
+        //                catch (Exception ex)
+        //                {
+        //                    goto gt2;
+        //                }
+        //            }
+        //            bl2 = true;
+        //        });
+        //    }
+        //    if (allbaobeilink.Count >= 3)
+        //    {
+        //        ThreadPool.QueueUserWorkItem((a) =>
+        //        {
 
-                    for (int i = 2; i < allbaobeilink.Count; i += 4)
-                    {
-                    gt3: try
-                        {
+        //            for (int i = 2; i < allbaobeilink.Count; i += 4)
+        //            {
+        //            gt3: try
+        //                {
 
-                            BaoBei_Attribute blat = new BaoBei_analyze().Analyze(allbaobeilink[i], 10000);
-                            System.GC.Collect();
-                            if (blat != null)
-                            {
+        //                    BaoBei_Attribute blat = new BaoBei_analyze().Analyze(allbaobeilink[i], 10000);
+        //                    System.GC.Collect();
+        //                    if (blat != null)
+        //                    {
 
-                                fanghui[i] = blat;
-                                if (JiDudelegate != null)
-                                    JiDudelegate();
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            goto gt3;
-                        }
-                    }
-                    bl3 = true;
-                });
-            }
-            if (allbaobeilink.Count >= 4)
-            {
-                ThreadPool.QueueUserWorkItem((a) =>
-                {
+        //                        fanghui[i] = blat;
+        //                        if (JiDudelegate != null)
+        //                            JiDudelegate();
+        //                    }
+        //                }
+        //                catch (Exception ex)
+        //                {
+        //                    goto gt3;
+        //                }
+        //            }
+        //            bl3 = true;
+        //        });
+        //    }
+        //    if (allbaobeilink.Count >= 4)
+        //    {
+        //        ThreadPool.QueueUserWorkItem((a) =>
+        //        {
 
-                    for (int i = 3; i < allbaobeilink.Count; i += 4)
-                    {
-                    gt4: try
-                        {
+        //            for (int i = 3; i < allbaobeilink.Count; i += 4)
+        //            {
+        //            gt4: try
+        //                {
 
-                            BaoBei_Attribute blat = new BaoBei_analyze().Analyze(allbaobeilink[i], 10000);
-                            System.GC.Collect();
-                            if (blat != null)
-                            {
+        //                    BaoBei_Attribute blat = new BaoBei_analyze().Analyze(allbaobeilink[i], 10000);
+        //                    System.GC.Collect();
+        //                    if (blat != null)
+        //                    {
 
-                                fanghui[i] = blat;
-                                if (JiDudelegate != null)
-                                    JiDudelegate();
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            goto gt4;
-                        }
-                    }
-                    bl4 = true;
-                });
-            }
-            #endregion
-            while (!bl1 || !bl2 || !bl3 || !bl4)
-            {
-                Thread.Sleep(5000);
-            }
-            List<BaoBei_Attribute> baobeilist_copy = fanghui.ToList();
-            for (int i = 0; i < baobeilist_copy.Count; i++)
-            {
-                if (baobeilist_copy[i] != null) { baobeilist.Add(baobeilist_copy[i]); }
-            }
-            for (int i = 0; i < baobeilist.Count; i++)//提供排名的功能
-            {
-                int howrking;
-                if ((i + 1) % 4 == 0)
-                    howrking = ((i + 1) / 4);
-                else
-                    howrking = ((i + 1) / 4) + 1;
-                baobeilist[i].Baobei_Rkingname = (i + 1).ToString() + "（" + "第" + howrking.ToString() + "排" + "）";
-            }
-            return baobeilist;
-        }
+        //                        fanghui[i] = blat;
+        //                        if (JiDudelegate != null)
+        //                            JiDudelegate();
+        //                    }
+        //                }
+        //                catch (Exception ex)
+        //                {
+        //                    goto gt4;
+        //                }
+        //            }
+        //            bl4 = true;
+        //        });
+        //    }
+        //    #endregion
+        //    while (!bl1 || !bl2 || !bl3 || !bl4)
+        //    {
+        //        Thread.Sleep(5000);
+        //    }
+        //    List<BaoBei_Attribute> baobeilist_copy = fanghui.ToList();
+        //    for (int i = 0; i < baobeilist_copy.Count; i++)
+        //    {
+        //        if (baobeilist_copy[i] != null) { baobeilist.Add(baobeilist_copy[i]); }
+        //    }
+        //    for (int i = 0; i < baobeilist.Count; i++)//提供排名的功能
+        //    {
+        //        int howrking;
+        //        if ((i + 1) % 4 == 0)
+        //            howrking = ((i + 1) / 4);
+        //        else
+        //            howrking = ((i + 1) / 4) + 1;
+        //        baobeilist[i].Baobei_Rkingname = (i + 1).ToString() + "（" + "第" + howrking.ToString() + "排" + "）";
+        //    }
+        //    return baobeilist;
+        //}
     }
 }
