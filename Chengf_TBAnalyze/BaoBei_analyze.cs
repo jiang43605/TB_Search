@@ -11,21 +11,22 @@ namespace Chengf_BaoBeiAnalyze
 {
     public class BaoBei_analyze
     {
-         Cf_HttpWeb myhttpweb = new Cf_HttpWeb();
-         string getstring;
+        Cf_HttpWeb myhttpweb = new Cf_HttpWeb();
+        string getstring;
         /// <summary>
         /// 分析传过来的网页，返回该宝贝对象
         /// </summary>
         /// <param name="uri">网页地址</param>
         /// <param name="timeout">响应时间</param>
-         /// <param name="objCookieContainer">总的Cookie传递集合</param>
+        /// <param name="objCookieContainer">总的Cookie传递集合</param>
         /// <returns></returns>
-        public  BaoBei_Attribute Analyze(string uri, int timeout,CookieContainer objCookieContainer)
+        public BaoBei_Attribute Analyze(string uri, int timeout, CookieContainer objCookieContainer)
         {
             BaoBei_Attribute Baobei_Attribute = new BaoBei_Attribute();
             myhttpweb.Timeout = timeout;
-            getstring = myhttpweb.PostOrGet(uri, HttpMethod.GET)[1];
-            if (getstring.IndexOf("天猫") == -1)
+            myhttpweb.AllowAutoRedirect = true;
+            getstring = myhttpweb.PostOrGet(uri, HttpMethod.GET).HtmlValue;
+            if (getstring.IndexOf("天猫Tmall.com") == -1)
             {
                 BaoBei_TradeRecord TradeRecord = BaoBei_TradeRecord.GetTradeRecord(uri, DateTime.Now, objCookieContainer);
                 Baobei_Attribute.Baobei_link = uri;
@@ -33,7 +34,7 @@ namespace Chengf_BaoBeiAnalyze
                 Baobei_Attribute.Baobei_manager = Cf_String.ExtractStringNoQH(getstring, "sellerNick:\"", "\"")[0];//宝贝掌柜的名字
                 Baobei_Attribute.Baobei_price = Price(uri, timeout);//宝贝的实际价格
                 Baobei_Attribute.Baobei_trading = Trading(uri, timeout);//宝贝交易量
-                if(TradeRecord==null)
+                if (TradeRecord == null)
                 {
                     Baobei_Attribute.Baobei_TimeOfTrade = 0;
                     Baobei_Attribute.Baobei_TimeOfPrice = 0;
@@ -60,13 +61,13 @@ namespace Chengf_BaoBeiAnalyze
         /// </summary>
         /// <param name="uri"></param>
         /// <returns></returns>
-         double Price(string uri, int timeout)
+        double Price(string uri, int timeout)
         {
-            string gouri = Cf_String.ExtractStringNoQH(getstring, "var b=\"", "\"")[0];
+            string gouri = "https:"+Cf_String.ExtractStringNoQH(getstring, "var b=\"", "\"")[0];
             gouri += "&ref=";
             myhttpweb.Timeout = timeout;
             myhttpweb.Referer = uri;
-            string html_price = myhttpweb.PostOrGet(gouri, HttpMethod.GET)[1];
+            string html_price = myhttpweb.PostOrGet(gouri, HttpMethod.GET).HtmlValue;
             if (html_price.IndexOf("price:\"") == -1)
             {
                 return double.Parse(Cf_String.ExtractStringNoQH(getstring, "price:", ",")[0]);
@@ -77,25 +78,25 @@ namespace Chengf_BaoBeiAnalyze
             }
 
         }//求实际价格的函数
-        /// <summary>
-        /// 获取宝贝的交易数量
-        /// </summary>
-        /// <param name="uri"></param>
-        /// <returns></returns>
-         Trading_Quantity Trading(string uri, int timeout)
+         /// <summary>
+         /// 获取宝贝的交易数量
+         /// </summary>
+         /// <param name="uri"></param>
+         /// <returns></returns>
+        Trading_Quantity Trading(string uri, int timeout)
         {
             Trading_Quantity newtrading = new Trading_Quantity();
             //string getstring = myhttpweb.PostOrGet(uri, HttpMethod.GET)[1];
-            string gouri = Cf_String.ExtractStringNoQH(getstring, "apiItemInfo\":\"", "\"")[0];
+            string gouri ="https:"+ Cf_String.ExtractStringNoQH(getstring, "apiItemInfo\":\"", "\"")[0];
             gouri += "&ref=";
             myhttpweb.Timeout = timeout;
             myhttpweb.Referer = uri;
-            string html_trading = myhttpweb.PostOrGet(gouri, HttpMethod.GET)[1];
+            string html_trading = myhttpweb.PostOrGet(gouri, HttpMethod.GET).HtmlValue;
             if (html_trading.IndexOf("quanity:") != -1)
-                newtrading.Quantity = int.Parse(Cf_String.ExtractStringNoQH(html_trading, "quanity:", ",")[0].Trim());
+                newtrading.Quantity = int.Parse(Cf_String.ExtractStringNoQH(html_trading, "  	,quanity:", ",")[0].Trim());
             else newtrading.Quantity = 0;
             if (html_trading.IndexOf("confirmGoods:") != -1)
-                newtrading.ConfirmGoods = int.Parse(Cf_String.ExtractStringNoQH(html_trading, "confirmGoods:", ",")[0].Trim());
+                newtrading.ConfirmGoods = int.Parse(Cf_String.ExtractStringNoQH(html_trading, "confirmGoods:", "}")[0].Trim());
             else newtrading.ConfirmGoods = 0;
             if (html_trading.IndexOf("paySuccess:") != -1)
                 newtrading.PaySuccess = int.Parse(Cf_String.ExtractStringNoQH(html_trading, "paySuccess:", ",")[0].Trim());
@@ -127,16 +128,16 @@ namespace Chengf_BaoBeiAnalyze
             gouri += "&currentPageNum=";
             myhttpweb.Referer = uri;
             myhttpweb.Timeout = timeout;
-            string html_trading = myhttpweb.PostOrGet(gouri + "1" + houzui, HttpMethod.GET)[1];
+            string html_trading = myhttpweb.PostOrGet(gouri + "1" + houzui, HttpMethod.GET).HtmlValue;
             int maxpage = int.Parse(Cf_String.ExtractStringNoQH(html_trading, "maxPage\":", ",")[0]);
             commentcl.Maxpage = maxpage;
             for (int i = 1; i <= maxpage; i++)
             {
                 myhttpweb.Referer = uri;
                 myhttpweb.Timeout = timeout;
-                List<string> name = Cf_String.ExtractStringNoQH(myhttpweb.PostOrGet(gouri + i.ToString() + houzui, HttpMethod.GET)[1], "nick\":\"", "\"");
+                List<string> name = Cf_String.ExtractStringNoQH(myhttpweb.PostOrGet(gouri + i.ToString() + houzui, HttpMethod.GET).HtmlValue, "nick\":\"", "\"");
                 myhttpweb.Timeout = timeout;
-                List<string> comment = Cf_String.ExtractStringNoQH(myhttpweb.PostOrGet(gouri + i.ToString() + houzui, HttpMethod.GET)[1].Replace("reply\":null,\"append\":{\"content\":\"", "").Replace("appendList\":[{\"content", ""), "content\":\"", "\"");
+                List<string> comment = Cf_String.ExtractStringNoQH(myhttpweb.PostOrGet(gouri + i.ToString() + houzui, HttpMethod.GET).HtmlValue.Replace("reply\":null,\"append\":{\"content\":\"", "").Replace("appendList\":[{\"content", ""), "content\":\"", "\"");
                 if (name.Count == comment.Count)
                 {
                     for (int i_1 = 0; i_1 < name.Count; i_1++)

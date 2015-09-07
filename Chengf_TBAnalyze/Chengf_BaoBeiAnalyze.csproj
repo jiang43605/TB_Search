@@ -30,7 +30,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Chengf">
+    <Reference Include="Chengf, Version=3.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\Chengf\bin\Release\Chengf.dll</HintPath>
     </Reference>
     <Reference Include="System" />

@@ -22,11 +22,12 @@
             
         </ListBox>-->
         <TextBox x:Name="Tbsuosou" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" HorizontalAlignment="Left" Height="32" Margin="10,510,0,0" TextWrapping="NoWrap" Text="" VerticalAlignment="Top" Width="380"/>
-        <DataGrid x:Name="dg1" CanUserAddRows="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" CanUserSortColumns="True" ColumnHeaderHeight="25" AutoGenerateColumns="False" HorizontalAlignment="Left" Margin="10,39,0,0" VerticalAlignment="Top" Height="446" Width="488"  MouseDoubleClick="dg1_MouseDoubleClick" AlternatingRowBackground="#FFD7E6D9" FontFamily="Meiryo UI" IsReadOnly="True" AlternationCount="2" GridLinesVisibility="None" Background="{x:Null}" >
+        <DataGrid x:Name="dg1" CanUserAddRows="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" CanUserSortColumns="True" ColumnHeaderHeight="25" AutoGenerateColumns="False" HorizontalAlignment="Left" Margin="10,39,0,0" VerticalAlignment="Top" Height="446" Width="488"  MouseDoubleClick="dg1_MouseDoubleClick" AlternatingRowBackground="#FFD7E6D9" FontFamily="Meiryo UI" IsReadOnly="True" AlternationCount="2" GridLinesVisibility="None" Background="{x:Null}" BorderBrush="Gray" >
             <DataGrid.ColumnHeaderStyle>
                 <Style TargetType="DataGridColumnHeader">
-                    <Setter Property="HorizontalContentAlignment" Value="Center">
-                    </Setter>
+                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                    <Setter Property="Background" Value="Gray"/>
+                    <Setter Property="Foreground" Value="White"/>
                 </Style>
             </DataGrid.ColumnHeaderStyle>
             <DataGrid.Columns>
@@ -43,8 +44,9 @@
         <DataGrid x:Name="dgmonitor" IsReadOnly="True" CanUserAddRows="False" CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserResizeRows="False" CanUserSortColumns="False" ColumnHeaderHeight="25" AutoGenerateColumns="False" HorizontalAlignment="Left" Margin="522,39,0,0" VerticalAlignment="Top" Height="auto" Width="463" AlternatingRowBackground="#FFD7E6D9" AlternationCount="2" GridLinesVisibility="None" >
             <DataGrid.ColumnHeaderStyle>
                 <Style TargetType="DataGridColumnHeader">
-                    <Setter Property="HorizontalContentAlignment" Value="Center">
-                    </Setter>
+                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                    <Setter Property="Background" Value="Gray"/>
+                    <Setter Property="Foreground" Value="White"/>
                 </Style>
             </DataGrid.ColumnHeaderStyle>
             <DataGrid.Columns>

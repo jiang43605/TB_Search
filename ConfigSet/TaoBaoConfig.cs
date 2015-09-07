@@ -19,7 +19,7 @@ namespace ConfigSet
             DisplayNum = 100;
             OpenMonitor = false;
             MonitorIsUpdating = false;
-            MianOpenThreadNum = 10;
+            MianOpenThreadNum = 1;
         }
         /// <summary>
         /// 主进程中要打开的线程个数

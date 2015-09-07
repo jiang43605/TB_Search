@@ -197,9 +197,19 @@ namespace TaoBao_JiHuo
                         PbSearch.Value = searchnum;
                         dg1.ItemsSource = bat;
                         List<BaoBei_Attribute> bat_copy = new List<BaoBei_Attribute>();
-                        for (int i = 0; i < 20; i++)
+                        if (bat.Count < 20)
                         {
-                            bat_copy.Add(bat[i]);
+                            for (int i = 0; i < bat.Count; i++)
+                            {
+                                bat_copy.Add(bat[i]);
+                            }
+                        }
+                        else
+                        {
+                            for (int i = 0; i < 20; i++)
+                            {
+                                bat_copy.Add(bat[i]);
+                            }
                         }
                         dgmonitor.ItemsSource = MonitorDataManage.DataManage(bat_copy, bat_copy, ref DataSaveList);
                         PbSearch.Value = 0;
@@ -369,9 +379,10 @@ namespace TaoBao_JiHuo
 
         private void dg1_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if(e.ChangedButton==MouseButton.Left)
+            if (e.ChangedButton == MouseButton.Left)
             {
                 BaoBei_Attribute openuri = (BaoBei_Attribute)dg1.SelectedItem;
+                if (openuri == null) return;
                 Process.Start(openuri.Baobei_link);
             }
         }

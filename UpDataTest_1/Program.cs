@@ -15,6 +15,13 @@ namespace UpDataTest_1
     {
         static void Main(string[] args)
         {
+
+            BaoBei_analyze ba = new BaoBei_analyze();
+            Cf_HttpWeb web = new Cf_HttpWeb();
+            web.CPostOrGet("https://item.taobao.com/item.htm?id=520704235964&ns=1&abbucket=16#detail", HttpMethod.GET);
+            BaoBei_Attribute bat = ba.Analyze("https://item.taobao.com/item.htm?id=520704235964&ns=1&abbucket=16#detail", 10000, web.CookieContainer);
+            Console.ReadKey();
+
             ////BaoBei_analyze oi = new BaoBei_analyze();
             ////BaoBei_Attribute attr = oi.Analyze("http://item.taobao.com/item.htm?spm=a230r.1.14.122.gJBUTb&id=40014412300&ns=1#detail", 10000);
             //Chengf.Cf_HttpWeb web = new Chengf.Cf_HttpWeb();

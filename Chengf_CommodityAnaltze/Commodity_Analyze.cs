@@ -51,7 +51,8 @@ namespace Chengf_CommodityAnaltze
         {
             commodityname = Commodityname;
             string uri = "http://s.taobao.com/search?q=" + commodityname + "&commend=all&ssid=s5-e&search_type=item&sourceId=tb.index&spm=1.7274553.1997520841.1&initiative_id=tbindexz_20140711";
-            string commodityhtml = myhttpweb.PostOrGet(uri, HttpMethod.GET)[1];
+            myhttpweb.EncodingSet = "utf-8";
+            string commodityhtml = myhttpweb.PostOrGet(uri, HttpMethod.GET).HtmlValue;
             InitializeCookieContainer();
             //if (commodityhtml.IndexOf("二手") == -1 || commodityhtml.IndexOf("值得买") == -1)
             //{
@@ -60,9 +61,10 @@ namespace Chengf_CommodityAnaltze
         }
         public void InitializeCookieContainer()
         {
-            myhttpweb.Referer = "http://www.taobao.com/";
-           CookieContainer cookieContainer = (CookieContainer)myhttpweb.PostOrGet("http://apollon.t.taobao.com/market/AllContentByPage.do?resourceIds=20140506001,20140506002,201040506006,20140506003,20140506004,20140506007,20140506008,20140506009,2014050610&t=1417249350371", HttpMethod.GET, new CookieContainer())[0];
-           ObjCookieContainer = cookieContainer;
+            myhttpweb.Referer = "https://www.taobao.com/";
+            CookieContainer cookieContainer = new CookieContainer();
+            cookieContainer.Add(myhttpweb.PostOrGet("http://apollon.t.taobao.com/market/AllContentByPage.do?resourceIds=20140506001,20140506002,201040506006,20140506003,20140506004,20140506007,20140506008,20140506009,2014050610&t=1417249350371", HttpMethod.GET, new CookieContainer()).CookieList);
+            ObjCookieContainer = cookieContainer;
         }
         /// <summary>
         /// 对传进来的搜索关键词进行分析,调用之前应先判断是否有搜索到的商品
@@ -71,7 +73,7 @@ namespace Chengf_CommodityAnaltze
         public Commodity_Attribute Anlyze()
         {
             string uri = "http://s.taobao.com/search?q=" + commodityname + "&commend=all&ssid=s5-e&search_type=item&sourceId=tb.index&spm=1.7274553.1997520841.1&initiative_id=tbindexz_20140711";
-            string commodityhtml = myhttpweb.PostOrGet(uri, HttpMethod.GET)[1];
+            string commodityhtml = myhttpweb.PostOrGet(uri, HttpMethod.GET).HtmlValue;
             Commodity_Attribute newcommodity = new Commodity_Attribute();
             newcommodity.Commodity_name = commodityname;
             newcommodity.Commodity_PageQuantity = Cf_String.ExtractStringNoQH(commodityhtml, "hasmax:true,max:", ",")[0];
@@ -87,9 +89,9 @@ namespace Chengf_CommodityAnaltze
         {
             string uri = "http://s.taobao.com/search?q=" + commodityname + "&commend=all&ssid=s5-e&search_type=item&sourceId=tb.index&spm=1.7274553.1997520841.1&initiative_id=tbindexz_20140711&s=";
             uri += (44 * (page - 1)).ToString();
-            string pagehtml = myhttpweb.PostOrGet(uri, HttpMethod.GET)[1];
+            string pagehtml = myhttpweb.PostOrGet(uri, HttpMethod.GET).HtmlValue;
             //if (pagehtml.IndexOf("筛选条件加的太多啦，未找到") != -1) return null;
-            List<string> pagelink = Cf_String.ExtractStringNoQH(pagehtml, "{\"nid\":\"", "\"");
+            List<string> pagelink = Cf_String.ExtractStringNoQH(pagehtml, "\"nid\":\"", "\"");
             if (pagelink.Count == 0) return null;//表示已经搜索要页的末尾了
             //http://item.taobao.com/item.htm?id=37551039826&ns=1#detail
             for (int i = 0; i < pagelink.Count; i++)
@@ -123,15 +125,17 @@ namespace Chengf_CommodityAnaltze
         /// <returns></returns>
         public List<string> Commodity_XPagelink(int page)
         {
-            string uri = "http://s.taobao.com/search?promote=0&sort=sale-desc&fs=1&initiative_id=staobaoz_20140712&tab=all&q=" + commodityname + "&stats_click=search_radio_all%253A1&s=";
+            string uri = "https://s.taobao.com/search?promote=0&sort=sale-desc&fs=1&initiative_id=staobaoz_20140712&tab=all&q=" + commodityname + "&stats_click=search_radio_all%253A1&s=";
             uri += (44 * (page - 1)).ToString();
-            string pagehtml = myhttpweb.PostOrGet(uri, HttpMethod.GET)[1];
-            List<string> pagelink = Cf_String.ExtractStringNoQH(pagehtml, "{\"nid\":\"", "\"");
+            myhttpweb.EncodingSet = "utf-8";
+            string pagehtml = myhttpweb.PostOrGet(uri, HttpMethod.GET).HtmlValue;
+            //List<string> pagelink = Cf_String.ExtractStringNoQH(pagehtml, "{\"nid\":\"", "\"");"nid"
+            List<string> pagelink = Cf_String.ExtractStringNoQH(pagehtml, "\"nid\":\"", "\"");
             if (pagelink.Count == 0) return null;//表示已经搜索要页的末尾了
             //http://item.taobao.com/item.htm?id=37551039826&ns=1#detail
             for (int i = 0; i < pagelink.Count; i++)
             {
-                pagelink[i] = "http://item.taobao.com/item.htm?id=" + pagelink[i] + "&ns=1#detail";
+                pagelink[i] = "https://item.taobao.com/item.htm?id=" + pagelink[i] + "&ns=1#detail";
             }
             return pagelink;
         }
@@ -205,7 +209,7 @@ namespace Chengf_CommodityAnaltze
             System.Net.ServicePointManager.DefaultConnectionLimit = 20;//设置最大连接并发数，这是为了防止连接超时
             List<string> allbaobeilink = Commodity_XAlllink();//获得所有宝贝的连接集合   
             return ThreadUpdata(allbaobeilink, JiDudelegate, openThreadNum);
-        } 
+        }
         /// <summary>
         /// 开启线程刷新或请求宝贝的属性，可自定义线程开启数目
         /// </summary>
@@ -228,10 +232,11 @@ namespace Chengf_CommodityAnaltze
                         int k = (int)a;
                         for (int j = k; j < allbaobeilink.Count; j += threadnum)
                         {
-                        gt1: try
+                            gt1:
+                            try
                             {
                                 BaoBei_Attribute blat = new BaoBei_analyze().Analyze(allbaobeilink[j], 10000, ObjCookieContainer);//ObjCookieContainer用来传递Cookie值
-                                System.GC.Collect();
+                                //System.GC.Collect();
                                 if (blat != null)
                                 {
                                     fanghui[j] = blat;
@@ -239,8 +244,9 @@ namespace Chengf_CommodityAnaltze
                                         JiDudelegate();
                                 }
                             }
-                            catch (Exception)
+                            catch (Exception ee)
                             {
+                                ee.Message.ToString();
                                 goto gt1;
                             }
                         }
@@ -253,7 +259,7 @@ namespace Chengf_CommodityAnaltze
             {
                 Thread.Sleep(5000);
             }
-            System.GC.Collect();
+            //System.GC.Collect();
             List<BaoBei_Attribute> baobeilist_copy = fanghui.ToList();
             for (int i = 0; i < baobeilist_copy.Count; i++)
             {
@@ -281,7 +287,8 @@ namespace Chengf_CommodityAnaltze
             #region 初始化一个CookieContainer
             Cf_HttpWeb staticmyhttpweb = new Cf_HttpWeb();
             staticmyhttpweb.Referer = "http://www.taobao.com/";
-            CookieContainer cookieContainer = (CookieContainer)staticmyhttpweb.PostOrGet("http://apollon.t.taobao.com/market/AllContentByPage.do?resourceIds=20140506001,20140506002,201040506006,20140506003,20140506004,20140506007,20140506008,20140506009,2014050610&t=1417249350371", HttpMethod.GET, new CookieContainer())[0]; 
+            CookieContainer cookieContainer = new CookieContainer();
+            cookieContainer.Add(staticmyhttpweb.PostOrGet("https://apollon.t.taobao.com/market/AllContentByPage.do?resourceIds=20140506001,20140506002,201040506006,20140506003,20140506004,20140506007,20140506008,20140506009,2014050610&t=1417249350371", HttpMethod.GET, new CookieContainer()).CookieList);
             #endregion
             BaoBei_Attribute[] fanghui = new BaoBei_Attribute[allbaobeilink.Count];//定义该数组为了纠正因为List导致的排名错误
             List<BaoBei_Attribute> baobeilist = new List<BaoBei_Attribute>();//获得所有宝贝属性
@@ -296,7 +303,8 @@ namespace Chengf_CommodityAnaltze
                         int k = (int)a;
                         for (int j = k; j < allbaobeilink.Count; j += threadnum)
                         {
-                        gt1: try
+                            gt1:
+                            try
                             {
                                 BaoBei_Attribute blat = new BaoBei_analyze().Analyze(allbaobeilink[j], 10000, cookieContainer);
                                 System.GC.Collect();
