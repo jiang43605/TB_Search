@@ -70,10 +70,10 @@
                 <CheckBox x:Name="CbLimitXianShiSize" Content="限制数量" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" ToolTip="限制宝贝显示的数量"/>
                 <Label Content="显示的宝贝个数：" HorizontalAlignment="Left" Margin="121,4,0,0" VerticalAlignment="Top"/>
                 <TextBox x:Name="TbXianShiSize" InputMethod.IsInputMethodEnabled="False" VerticalContentAlignment="Center" HorizontalAlignment="Left" Height="23" Margin="227,5,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
-                <Label Content="监控的宝贝个数：" HorizontalAlignment="Left" Margin="121,32,0,0" VerticalAlignment="Top"/>
-                <TextBox x:Name="TbmonitorSize" VerticalContentAlignment="Center" HorizontalAlignment="Left" Height="23" Margin="227,33,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
+                <TextBox x:Name="TbmonitorSize" Visibility="Hidden" VerticalContentAlignment="Center" HorizontalAlignment="Left" Height="23" Margin="227,33,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
                 <CheckBox Name="CbSuperMode" Content="开启极速模式" HorizontalAlignment="Left" Margin="10,65,0,0" VerticalAlignment="Top" ToolTip="电脑配置不好的，不建议开启" Click="CbSuperMode_Click" />
-                <CheckBox x:Name="Cbopenmonitor" IsChecked="True" Content="开启监控" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top" />
+                <CheckBox x:Name="Cbopenmonitor" Visibility="Hidden" IsChecked="False" Content="开启监控" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top" />
+                <DatePicker x:Name="DatePicker" HorizontalAlignment="Left"  Margin="10,33,0,0" VerticalAlignment="Top" Width="337" />
 
             </Grid>
         </GroupBox>

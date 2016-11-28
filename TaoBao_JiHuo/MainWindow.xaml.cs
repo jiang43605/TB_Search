@@ -1,17 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Chengf;
 using Chengf_BaoBeiAnalyze;
 using System.Threading;
@@ -19,10 +10,11 @@ using Chengf_CommodityAnaltze;
 using Chengf_BaoBeiMonitor;
 using System.IO;
 using ConfigSet;
-using System.Collections;
 using System.Net.Sockets;
 using System.Net;
 using System.Diagnostics;
+using System.Linq;
+using Newtonsoft.Json.Linq;
 
 namespace TaoBao_JiHuo
 {
@@ -52,6 +44,7 @@ namespace TaoBao_JiHuo
         IPEndPoint Point = new IPEndPoint(IPAddress.Parse("10.93.4.126"), 8889);
         string updatafilename;
         bool canupdata = false;//判断监控更新后是否能再次开始 
+        private DateTime searchDateTime = DateTime.Now;
         #endregion
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
@@ -144,6 +137,7 @@ namespace TaoBao_JiHuo
             canupdata = false;//禁止更新程序的运行
             while (ParameterSet.MonitorIsUpdating) Thread.Sleep(2000);//更新程序正在运行，主程序开始等待 
             #endregion
+
             BtSearch.IsEnabled = false;
             BtSearch.Content = "0%";
             ProgressInt = 0;
@@ -165,10 +159,10 @@ namespace TaoBao_JiHuo
                         BtSearch.Dispatcher.BeginInvoke(new newdelegate(() => { PbSearch.Maximum = searchnum; }), System.Windows.Threading.DispatcherPriority.Normal);
                     }
                     System.Net.ServicePointManager.DefaultConnectionLimit = 50;
-                    if (ParameterSet.RkingMode == BaoBei_RkingMode.Sales) bat = newcommdityA.Commodity_Xranking(ProgressUI);
-                    else if (ParameterSet.RkingMode == BaoBei_RkingMode.Composite) bat = newcommdityA.Commodity_Zranking(ProgressUI);
-                    else if (ParameterSet.RkingMode == BaoBei_RkingMode.AppointSomeSales) bat = newcommdityA.Commodity_XQBaoBei(searchnum, ProgressUI);
-                    else if (ParameterSet.RkingMode == BaoBei_RkingMode.AppointCompsite) bat = newcommdityA.Commodity_ZQBaoBei(searchnum, ProgressUI);
+                    if (ParameterSet.RkingMode == BaoBei_RkingMode.Sales) bat = newcommdityA.Commodity_Xranking(ProgressUI, searchDateTime);
+                    else if (ParameterSet.RkingMode == BaoBei_RkingMode.Composite) bat = newcommdityA.Commodity_Zranking(ProgressUI, searchDateTime);
+                    else if (ParameterSet.RkingMode == BaoBei_RkingMode.AppointSomeSales) bat = newcommdityA.Commodity_XQBaoBei(searchnum, ProgressUI, searchDateTime);
+                    else if (ParameterSet.RkingMode == BaoBei_RkingMode.AppointCompsite) bat = newcommdityA.Commodity_ZQBaoBei(searchnum, ProgressUI, searchDateTime);
                     else { MessageBox.Show("模式选取发生错误，请关闭重启"); return; }
                     DataSaveList = new DataTemporarySave[bat.Count];
                     for (int i = 0; i < bat.Count; i++)
@@ -251,7 +245,7 @@ namespace TaoBao_JiHuo
             #endregion
             updataint++;
             Tbmonitor.JiDudelegate = null;
-            List<BaoBei_Attribute> newattribute = (List<BaoBei_Attribute>)Tbmonitor.BaoBeiUpdata(bat);//基于传入的宝贝属性进行下一次的更新
+            List<BaoBei_Attribute> newattribute = (List<BaoBei_Attribute>)Tbmonitor.BaoBeiUpdata(bat, searchDateTime);//基于传入的宝贝属性进行下一次的更新
             MonitorDataManage.OriginalAttribute = originalbat;//将原值赋值
             List<MonitorDataAttribute> newmonitorattribute = MonitorDataManage.DataManage(newattribute, bat, ref DataSaveList);//处理更新一次后的数据迭代
             bat.Clear();
@@ -314,10 +308,10 @@ namespace TaoBao_JiHuo
             ProgressInt = 0;
             BtSearch.Dispatcher.BeginInvoke(new newdelegate(() => { BtSearch.IsEnabled = false; }), null);
             newcommdityA = new Commodity_Analyze(tbsuosou_text);
-            if (ParameterSet.RkingMode == BaoBei_RkingMode.Sales) bat = newcommdityA.Commodity_Xranking(ProgressUI);
-            else if (ParameterSet.RkingMode == BaoBei_RkingMode.Composite) bat = newcommdityA.Commodity_Zranking(ProgressUI);
-            else if (ParameterSet.RkingMode == BaoBei_RkingMode.AppointSomeSales) bat = newcommdityA.Commodity_XQBaoBei(searchnum, ProgressUI);
-            else if (ParameterSet.RkingMode == BaoBei_RkingMode.AppointCompsite) bat = newcommdityA.Commodity_ZQBaoBei(searchnum, ProgressUI);
+            if (ParameterSet.RkingMode == BaoBei_RkingMode.Sales) bat = newcommdityA.Commodity_Xranking(ProgressUI, searchDateTime);
+            else if (ParameterSet.RkingMode == BaoBei_RkingMode.Composite) bat = newcommdityA.Commodity_Zranking(ProgressUI, searchDateTime);
+            else if (ParameterSet.RkingMode == BaoBei_RkingMode.AppointSomeSales) bat = newcommdityA.Commodity_XQBaoBei(searchnum, ProgressUI, searchDateTime);
+            else if (ParameterSet.RkingMode == BaoBei_RkingMode.AppointCompsite) bat = newcommdityA.Commodity_ZQBaoBei(searchnum, ProgressUI, searchDateTime);
             else { MessageBox.Show("模式选取发生错误，请关闭重启"); return; }
             #region 对original全新赋值
             List<BaoBei_Attribute> originalbat_copy = bat;
@@ -386,7 +380,5 @@ namespace TaoBao_JiHuo
                 Process.Start(openuri.Baobei_link);
             }
         }
-
-
     }
 }

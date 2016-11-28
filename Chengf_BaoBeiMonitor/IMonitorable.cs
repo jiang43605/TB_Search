@@ -9,6 +9,6 @@ namespace Chengf_BaoBeiMonitor
 {
     public interface IMonitorable
     {
-        object BaoBeiUpdata(object obj);
+        object BaoBeiUpdata(object obj,DateTime searchDateTime);
     }
 }

@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace Chengf_BaoBeiAnalyze
 {
@@ -59,65 +60,67 @@ namespace Chengf_BaoBeiAnalyze
         /// </summary>
         /// <param name="uri"></param>
         /// <returns></returns>
-        public static BaoBei_TradeRecord GetTradeRecord(string uri, DateTime datetime, CookieContainer cookiecontainertool)
+        public static BaoBei_TradeRecord GetTradeRecord(string uri, DateTime datetime, CookieContainer cookiecontainertool, double defalutPrice = 0)
         {
 
             BaoBei_TradeRecord traceRecord = new BaoBei_TradeRecord();
             Chengf.Cf_HttpWeb newhttpweb = new Chengf.Cf_HttpWeb();
             int endpoint = 0;
             var html = newhttpweb.CPostOrGet(uri, Chengf.HttpMethod.GET).HtmlValue;
-            //string tradrecordh_html = Cf_String.ExtractStringNoQH(html, "data-api=\"", "\"")[0];g_config.recordsApi="//
-            string tradrecordh_html = "https://" + Cf_String.ExtractStringNoQH(html, "g_config.recordsApi=\"//", "\"")[0];
-            tradrecordh_html += "&callback=Hub.data.records_reload";
+
+            string tradrecordh_html = "https://" +
+                                      Regex.Match(html, @"(?<=rateCounterApi(\s)*:(\s)*'//)(?<item>.*)(?=')").Groups[
+                                          "item"].Value
+                                          .Replace("itemId", "auctionNumId")
+                                          .Replace("detailCount.do", "feedRateList.htm");
+
+            var userNumId = Regex.Match(html, @"(?<=sellerId(\s)*: ')(?<id>\d*)(?=')").Groups["id"].Value;
+
+            //https://rate.taobao.com/feedRateList.htm?auctionNumId=534169093991&userNumId=702657768&currentPageNum=1&pageSize=20000000&orderType=sort_weight&callback=jsonp_tbcrate_reviews_list
+            tradrecordh_html += $"&userNumId={userNumId}&pageSize=20&orderType=feedbackdate&callback=jsonp_tbcrate_reviews_list";
             string recordhtml = "";
-            string strreplace = "&bid_page=1";//为下面循环进行数据暂存
+            string strreplace = "&currentPageNum=1";//为下面循环进行数据暂存
             tradrecordh_html += strreplace;
-            BaoBei_TradeRecord endrecordlist = new BaoBei_TradeRecord();//存储末尾的交易记录
             newhttpweb.Referer = uri;
             string timeEquals = newhttpweb.PostOrGet(tradrecordh_html, HttpMethod.GET, cookiecontainertool).HtmlValue;
-            if (timeEquals.IndexOf(datetime.ToString("yyyy-MM-dd")) == -1||timeEquals.Contains("sec.taobao"))
+            if (timeEquals.IndexOf(datetime.ToLongDateString(), StringComparison.Ordinal) == -1 || timeEquals.Contains("sec.taobao"))
                 return null;
 
+            var totalrecord = new BaoBei_TradeRecord
+            {
+                BuyTime = new List<DateTime>(),
+                BuyPrice = new List<double>(),
+                BuyNum = new List<int>(),
+                BuyerName = new List<string>()
+            };
 
             for (int i = 1; ; i++)
             {
                 try
                 {
-                    string pagenum = "bid_page=" + i.ToString();
+                    string pagenum = "&currentPageNum=" + i;
                     tradrecordh_html = tradrecordh_html.Replace(strreplace, pagenum);
                     strreplace = pagenum;
 
                     newhttpweb.Referer = uri;
                     string recordhtml_copy = newhttpweb.PostOrGet(tradrecordh_html, HttpMethod.GET, cookiecontainertool).HtmlValue;
-                    if (!IsDateEnd(HtmlToTradeRecord(recordhtml_copy).BuyTime, datetime, out endpoint) || recordhtml_copy.IndexOf("暂时还没有买家购买此宝贝") != -1 || i >= 100)
+
+                    var tr = ResolveHtml(recordhtml_copy.Trim('\r', '\n', ' '), defalutPrice);
+                    if (tr.BuyTime.Any(o => o.ToShortDateString() != datetime.ToShortDateString()))
                     {
-                        if (recordhtml_copy.IndexOf("暂时还没有买家购买此宝贝") != -1) { endrecordlist = null; break; }
-                        endrecordlist = HtmlToTradeRecord(recordhtml_copy);
-                        break;
+                        totalrecord += FilterInCorrectDate(tr, datetime);
+                        return totalrecord;
                     }
-                    recordhtml += recordhtml_copy;
+
+                    totalrecord += tr;
+
                     Thread.Sleep(500);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    throw;
+                    throw ex;
                 }
             }
-            BaoBei_TradeRecord totalrecord = new BaoBei_TradeRecord();
-            totalrecord = HtmlToTradeRecord(recordhtml);
-            //将末尾记录和全段记录合并
-            if (endrecordlist != null)
-            {
-                for (int i = 0; i < endpoint; i++)
-                {
-                    totalrecord.BuyerName.Add(endrecordlist.BuyerName[i]);
-                    totalrecord.BuyNum.Add(endrecordlist.BuyNum[i]);
-                    totalrecord.BuyPrice.Add(endrecordlist.BuyPrice[i]);
-                    totalrecord.BuyTime.Add(endrecordlist.BuyTime[i]);
-                }
-            }
-
-            return totalrecord;
         }
         /// <summary>
         /// 通过URI解析特定网页的内容，返回一个解析的对象
@@ -131,21 +134,73 @@ namespace Chengf_BaoBeiAnalyze
             string record_html = newhttpweb.PostOrGet(uri, Chengf.HttpMethod.GET).HtmlValue;
             return HtmlToTradeRecord(record_html);
         }
+
+        /// <summary>
+        /// 去除不匹配的时间
+        /// </summary>
+        /// <param name="tr"></param>
+        /// <param name="dt"></param>
+        /// <returns></returns>
+        private static BaoBei_TradeRecord FilterInCorrectDate(BaoBei_TradeRecord tr, DateTime dt)
+        {
+            while (tr.BuyTime.Any(o => o.ToShortDateString() != dt.ToShortDateString()))
+            {
+                var index = tr.BuyTime.FindIndex(o => o.ToShortDateString() != dt.ToShortDateString());
+                tr.BuyTime.RemoveAt(index);
+                tr.BuyNum.RemoveAt(index);
+                tr.BuyPrice.RemoveAt(index);
+                tr.BuyerName.RemoveAt(index);
+            }
+
+            return tr;
+        }
+
+        /// <summary>
+        /// 解析html使用json解析，需要设置一个默认的价格值
+        /// </summary>
+        /// <param name="html"></param>
+        /// <param name="defalutPrice"></param>
+        /// <returns></returns>
+        private static BaoBei_TradeRecord ResolveHtml(string html, double defalutPrice)
+        {
+            html = html.Replace("jsonp_tbcrate_reviews_list(", string.Empty).TrimEnd(')');
+
+            var json = JToken.Parse(html);
+            var tr = new BaoBei_TradeRecord
+            {
+                BuyTime = new List<DateTime>(),
+                BuyPrice = new List<double>(),
+                BuyNum = new List<int>(),
+                BuyerName = new List<string>()
+            };
+
+            foreach (var comment in json["comments"])
+            {
+                tr.BuyTime.Add(string.IsNullOrWhiteSpace(comment["date"].Value<string>()) ? DateTime.MinValue : comment["date"].Value<DateTime>());
+                tr.BuyNum.Add(comment["buyAmount"].Value<int>());
+                tr.BuyPrice.Add(string.IsNullOrWhiteSpace(comment["bidPriceMoney"].ToString()) ? defalutPrice : comment["bidPriceMoney"]["amount"].Value<double>());
+                tr.BuyerName.Add(comment["user"]["nick"].Value<string>());
+            }
+
+            return tr;
+        }
+
         /// <summary>
         /// 解析特定网页的内容，返回一个解析的对象
         /// </summary>
         /// <param name="html"></param>
         /// <returns></returns>
+        [Obsolete("仅用于阅读记录")]
         private static BaoBei_TradeRecord HtmlToTradeRecord(string html)
         {
             BaoBei_TradeRecord tradrecord = new BaoBei_TradeRecord();
             #region 得到买家的名字
-            List<string> buyname_list = Cf_String.ExtractStringNoQH(html, "\"buyerNick\":\"", "\"");
+            List<string> buyname_list = Cf_String.ExtractStringNoQH(html, "\"nick\":\"", "\"");
             buyname_list = buyname_list.Select(o => Regex.Unescape(o)).ToList();
             #endregion
             tradrecord.BuyerName = buyname_list;
             #region 得到购买的价格
-            List<string> buyprice_strlist = Cf_String.ExtractStringNoQH(html, "\"price\":\"", "\"");
+            List<string> buyprice_strlist = Cf_String.ExtractStringNoQH(html, "\"amount\":", ",");
             List<double> buyprice_doblist = new List<double>();
             foreach (var item in buyprice_strlist)
             {
@@ -154,7 +209,7 @@ namespace Chengf_BaoBeiAnalyze
             #endregion
             tradrecord.BuyPrice = buyprice_doblist;
             #region 得到购买的数量
-            List<string> buynum_strlist = Cf_String.ExtractStringNoQH(html, "\"amount\":", ",");
+            List<string> buynum_strlist = Cf_String.ExtractStringNoQH(html, "\"buyAmount\":", "}");
             List<int> buynum_intlist = new List<int>();
             foreach (var item in buynum_strlist)
             {
@@ -163,7 +218,7 @@ namespace Chengf_BaoBeiAnalyze
             #endregion
             tradrecord.BuyNum = buynum_intlist;
             #region 得到购买的时间
-            List<string> buytime_strtime = Cf_String.ExtractStringNoQH(html, "\"payTime\":\"", "\"");
+            List<string> buytime_strtime = Cf_String.ExtractStringNoQH(html, "\"date\":\"", "\"");
             List<DateTime> buytime_datertime = new List<DateTime>();
             foreach (var item in buytime_strtime)
             {
@@ -208,6 +263,16 @@ namespace Chengf_BaoBeiAnalyze
             }
             totalprice = double.Parse(totalprice.ToString("0.00"));
             return totalprice;
+        }
+
+        public static BaoBei_TradeRecord operator +(BaoBei_TradeRecord b1, BaoBei_TradeRecord b2)
+        {
+            b1.BuyNum.AddRange(b2.BuyNum);
+            b1.BuyPrice.AddRange(b2.BuyPrice);
+            b1.BuyTime.AddRange(b2.BuyTime);
+            b1.BuyerName.AddRange(b2.BuyerName);
+
+            return b1;
         }
     }
 }

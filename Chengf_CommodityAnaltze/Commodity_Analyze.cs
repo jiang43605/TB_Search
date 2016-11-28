@@ -18,7 +18,7 @@ namespace Chengf_CommodityAnaltze
         Cf_HttpWeb myhttpweb = new Cf_HttpWeb();
         bool ishavecontent = true;
         string commodityname;//搜索的名词
-        int openThreadNum = 10;
+        int openThreadNum = 1;
         /// <summary>
         /// 适用整个程序传递Cookie值
         /// </summary>
@@ -105,7 +105,7 @@ namespace Chengf_CommodityAnaltze
         /// </summary>
         /// <param name="page"></param>
         /// <returns></returns>
-        public List<BaoBei_Attribute> Commodity_ZQBaoBei(int count, newdelegate JiDudelegate)
+        public List<BaoBei_Attribute> Commodity_ZQBaoBei(int count, newdelegate JiDudelegate, DateTime searchDateTime)
         {
             List<string> allbaobeilink = new List<string>();
             for (int i = 0; i < (count / 44) + 1; i++)
@@ -116,7 +116,7 @@ namespace Chengf_CommodityAnaltze
                 allbaobeilink.AddRange(list_1);//使得加载的页面不会过多
             }
             allbaobeilink.RemoveRange(count, (allbaobeilink.Count - count));
-            return ThreadUpdata(allbaobeilink, JiDudelegate, openThreadNum);
+            return ThreadUpdata(allbaobeilink, JiDudelegate, openThreadNum, searchDateTime);
         }
         /// <summary>
         /// 销量排名下返回指定页面的宝贝
@@ -144,7 +144,7 @@ namespace Chengf_CommodityAnaltze
         /// </summary>
         /// <param name="page"></param>
         /// <returns></returns>
-        public List<BaoBei_Attribute> Commodity_XQBaoBei(int count, newdelegate JiDudelegate)
+        public List<BaoBei_Attribute> Commodity_XQBaoBei(int count, newdelegate JiDudelegate, DateTime searchDateTime)
         {
             List<string> allbaobeilink = new List<string>();
             for (int i = 0; i < (count / 44) + 1; i++)
@@ -154,8 +154,10 @@ namespace Chengf_CommodityAnaltze
                     break;
                 allbaobeilink.AddRange(list_1);//使得加载的页面不会过多
             }
-            allbaobeilink.RemoveRange(count, (allbaobeilink.Count - count));
-            return ThreadUpdata(allbaobeilink, JiDudelegate, openThreadNum);
+
+            if (allbaobeilink.Count > count)
+                allbaobeilink.RemoveRange(count, (allbaobeilink.Count - count));
+            return ThreadUpdata(allbaobeilink, JiDudelegate, openThreadNum, searchDateTime);
         }
 
         /// <summary>
@@ -194,30 +196,32 @@ namespace Chengf_CommodityAnaltze
         /// 根据综合获得全部排名
         /// </summary>
         /// <returns></returns>
-        public List<BaoBei_Attribute> Commodity_Zranking(newdelegate JiDudelegate)
+        public List<BaoBei_Attribute> Commodity_Zranking(newdelegate JiDudelegate, DateTime searchDateTime)
         {
             System.Net.ServicePointManager.DefaultConnectionLimit = 20;//设置最大连接并发数，这是为了防止连接超时
             List<string> allbaobeilink = Commodity_ZAlllink();//获得所有宝贝的连接集合
-            return ThreadUpdata(allbaobeilink, JiDudelegate, openThreadNum);
+            return ThreadUpdata(allbaobeilink, JiDudelegate, openThreadNum, searchDateTime);
         }
         /// <summary>
         /// 根据销量获得全部排名
         /// </summary>
         /// <returns></returns>
-        public List<BaoBei_Attribute> Commodity_Xranking(newdelegate JiDudelegate)
+        public List<BaoBei_Attribute> Commodity_Xranking(newdelegate JiDudelegate, DateTime searchDateTime)
         {
             System.Net.ServicePointManager.DefaultConnectionLimit = 20;//设置最大连接并发数，这是为了防止连接超时
             List<string> allbaobeilink = Commodity_XAlllink();//获得所有宝贝的连接集合   
-            return ThreadUpdata(allbaobeilink, JiDudelegate, openThreadNum);
+            return ThreadUpdata(allbaobeilink, JiDudelegate, openThreadNum, searchDateTime);
         }
+
         /// <summary>
         /// 开启线程刷新或请求宝贝的属性，可自定义线程开启数目
         /// </summary>
         /// <param name="allbaobeilink">要更新数据的集合包</param>
         /// <param name="JiDudelegate">界面显示代码</param>
         /// <param name="threadnum">要开启加速的线程数</param>
+        /// <param name="searchDateTime"></param>
         /// <returns></returns>
-        public List<BaoBei_Attribute> ThreadUpdata(List<string> allbaobeilink, newdelegate JiDudelegate, int threadnum)
+        public List<BaoBei_Attribute> ThreadUpdata(List<string> allbaobeilink, newdelegate JiDudelegate, int threadnum, DateTime searchDateTime)
         {
             BaoBei_Attribute[] fanghui = new BaoBei_Attribute[allbaobeilink.Count];//定义该数组为了纠正因为List导致的排名错误
             List<BaoBei_Attribute> baobeilist = new List<BaoBei_Attribute>();//获得所有宝贝属性
@@ -232,10 +236,10 @@ namespace Chengf_CommodityAnaltze
                         int k = (int)a;
                         for (int j = k; j < allbaobeilink.Count; j += threadnum)
                         {
-                            gt1:
+                        gt1:
                             try
                             {
-                                BaoBei_Attribute blat = new BaoBei_analyze().Analyze(allbaobeilink[j], 10000, ObjCookieContainer);//ObjCookieContainer用来传递Cookie值
+                                BaoBei_Attribute blat = new BaoBei_analyze().Analyze(allbaobeilink[j], 10000, ObjCookieContainer, searchDateTime);//ObjCookieContainer用来传递Cookie值
                                 //System.GC.Collect();
                                 if (blat != null)
                                 {
@@ -282,7 +286,7 @@ namespace Chengf_CommodityAnaltze
         /// <param name="allbaobeilink"></param>
         /// <param name="JiDudelegate"></param>
         /// <returns></returns>
-        public static List<BaoBei_Attribute> ThreadUpdataStatic(List<string> allbaobeilink, newdelegate JiDudelegate, int threadnum)
+        public static List<BaoBei_Attribute> ThreadUpdataStatic(List<string> allbaobeilink, newdelegate JiDudelegate, int threadnum, DateTime searchDateTime)
         {
             #region 初始化一个CookieContainer
             Cf_HttpWeb staticmyhttpweb = new Cf_HttpWeb();
@@ -303,10 +307,10 @@ namespace Chengf_CommodityAnaltze
                         int k = (int)a;
                         for (int j = k; j < allbaobeilink.Count; j += threadnum)
                         {
-                            gt1:
+                        gt1:
                             try
                             {
-                                BaoBei_Attribute blat = new BaoBei_analyze().Analyze(allbaobeilink[j], 10000, cookieContainer);
+                                BaoBei_Attribute blat = new BaoBei_analyze().Analyze(allbaobeilink[j], 10000, cookieContainer, searchDateTime);
                                 System.GC.Collect();
                                 if (blat != null)
                                 {

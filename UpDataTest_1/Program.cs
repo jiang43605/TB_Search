@@ -19,7 +19,7 @@ namespace UpDataTest_1
             BaoBei_analyze ba = new BaoBei_analyze();
             Cf_HttpWeb web = new Cf_HttpWeb();
             web.CPostOrGet("https://item.taobao.com/item.htm?id=520704235964&ns=1&abbucket=16#detail", HttpMethod.GET);
-            BaoBei_Attribute bat = ba.Analyze("https://item.taobao.com/item.htm?id=520704235964&ns=1&abbucket=16#detail", 10000, web.CookieContainer);
+            BaoBei_Attribute bat = ba.Analyze("https://item.taobao.com/item.htm?id=520704235964&ns=1&abbucket=16#detail", 10000, web.HttpCookieContainer,DateTime.Now);
             Console.ReadKey();
 
             ////BaoBei_analyze oi = new BaoBei_analyze();

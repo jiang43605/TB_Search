@@ -36,7 +36,7 @@ namespace Chengf_BaoBeiMonitor
         /// <param name="obj"></param>
         /// <param name="JiDudelegate"></param>
         /// <returns></returns>
-        public object BaoBeiUpdata(object obj)
+        public object BaoBeiUpdata(object obj,DateTime searchDateTime)
         {
             List<BaoBei_Attribute> bbat_copy = (List<BaoBei_Attribute>)obj;
             List<string> allbaobeilink = new List<string>();
@@ -54,7 +54,7 @@ namespace Chengf_BaoBeiMonitor
                     allbaobeilink.Add(bbat_copy[i].Baobei_link);
                 }
             }
-           List<BaoBei_Attribute> baobeilist = Chengf_CommodityAnaltze.Commodity_Analyze.ThreadUpdataStatic(allbaobeilink, JiDudelegate,5);
+           List<BaoBei_Attribute> baobeilist = Chengf_CommodityAnaltze.Commodity_Analyze.ThreadUpdataStatic(allbaobeilink, JiDudelegate,5, searchDateTime);
             for (int i = Monitornum; i < bbat_copy.Count; i++)
             {
                 baobeilist.Add(bbat_copy[i]);
