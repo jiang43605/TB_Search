@@ -78,7 +78,7 @@ namespace Chengf_BaoBeiAnalyze
 
             //https://rate.taobao.com/feedRateList.htm?auctionNumId=534169093991&userNumId=702657768&currentPageNum=1&pageSize=20000000&orderType=sort_weight&callback=jsonp_tbcrate_reviews_list
             tradrecordh_html += $"&userNumId={userNumId}&pageSize=20&orderType=feedbackdate&callback=jsonp_tbcrate_reviews_list";
-            string recordhtml = "";
+            //string recordhtml = "";
             string strreplace = "&currentPageNum=1";//为下面循环进行数据暂存
             tradrecordh_html += strreplace;
             newhttpweb.Referer = uri;
