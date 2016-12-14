@@ -1,3 +1,4 @@
+![status](https://chengf.visualstudio.com/_apis/public/build/definitions/50caa71c-75f3-440c-b01c-e20dbad9ee19/2/badge)
 # TB_Search
 
 > 简单抓取并分析淘宝的数据
